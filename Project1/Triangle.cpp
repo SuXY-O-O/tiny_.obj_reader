@@ -1,4 +1,5 @@
 #include "Triangle.h"
+#include "Reader.h"
 #include <cmath>
 
 void Triangle::compute_normal()
@@ -22,6 +23,7 @@ void Triangle::compute_normal()
 	double n1 = a2 * b3 - a3 * b2;
 	double n2 = a3 * b1 - a1 * b3;
 	double n3 = a1 * b2 - a2 * b1;
+	n = new Vertex(n1, n2, n3);
 	// Compute k_delta
 	k_delta_x = -n1 / n3;
 	k_delta_y = -n2 / n3;
@@ -30,8 +32,8 @@ void Triangle::compute_normal()
 
 void Triangle::compute_x_list()
 {
-	printf("(%04.4lf, %04.4lf, %04.4lf)\t(%04.4lf, %04.4lf, %04.4lf)\t(%04.4lf, %04.4lf, %04.4lf)\n",
-		v1->x, v1->y, v1->z, v2->x, v2->y, v2->z, v3->x, v3->y, v3->z);
+	//printf("(%04.4lf, %04.4lf, %04.4lf)\t(%04.4lf, %04.4lf, %04.4lf)\t(%04.4lf, %04.4lf, %04.4lf)\n",
+	//	v1->x, v1->y, v1->z, v2->x, v2->y, v2->z, v3->x, v3->y, v3->z);
 	// Flags for horizontal lines
 	bool check_horizon[3] = { false, false, false };
 	// 1/gradient of line (v1, v2) on XOY
@@ -52,7 +54,7 @@ void Triangle::compute_x_list()
 		check_horizon[2] = true;
 	else
 		d2 = (v1->x - v3->x) / (v1->y - v3->y);
-	printf("k0: %lf\t k1: %lf\t k2: %lf\n", d0, d1, d2);
+	//printf("k0: %lf\t k1: %lf\t k2: %lf\n", d0, d1, d2);
 	// Compute
 	int min = begin_y;
 	int max = (int)ceil(y_max);
@@ -80,7 +82,7 @@ void Triangle::compute_x_list()
 			tmp[i_tmp] = (int)(d2 * (i_y - v1->y) + v1->x);
 			i_tmp++;
 		}
-		printf("x_min to x_max: %d, %d\n", tmp[0], tmp[1]);
+		//printf("x_min to x_max: %d, %d\n", tmp[0], tmp[1]);
 		// Save
 		if (tmp[0] > tmp[1])
 		{
@@ -105,6 +107,13 @@ Triangle::Triangle(Vertex* a1, Vertex* a2, Vertex* a3)
 	y_min = a1->y < a2->y ? a1->y : a2->y;
 	if (y_min > a3->y)
 		y_min = a3->y;
+	// Get z_max and z_min
+	z_max = a1->z > a2->z ? a1->z : a2->z;
+	if (z_max < a3->z)
+		z_max = a3->z;
+	z_min = a1->z < a2->z ? a1->z : a2->z;
+	if (z_min > a3->z)
+		z_min = a3->z;
 	// Get x_y_min and z_y_min
 	if (y_min == a1->y)
 	{
@@ -133,7 +142,26 @@ double Triangle::compute_z_value(double x, double y)
 {
 	if (is_static_z)
 		return v1->z;
-	return k_delta_x * (x - x_y_min) + k_delta_y * (y - y_min) + z_y_min;
+	double z_tmp = -(n->x * (x - v1->x) + n->y * (y - v1->y)) / n->z + v1->z;
+	if (isinf(z_tmp))
+	{
+		z_tmp = z_y_min;
+	}
+	else if (z_tmp > z_max)
+	{
+		//printf("(%04.4lf, %04.4lf, %04.4lf)\t(%04.4lf, %04.4lf, %04.4lf)\t(%04.4lf, %04.4lf, %04.4lf)\n",
+		//	v1->x, v1->y, v1->z, v2->x, v2->y, v2->z, v3->x, v3->y, v3->z);
+		//printf("max: %lf\t %lf\n", z_max, z_tmp);
+		z_tmp = z_max;
+	}
+	else if (z_tmp < z_min)
+	{
+		//printf("(%04.4lf, %04.4lf, %04.4lf)\t(%04.4lf, %04.4lf, %04.4lf)\t(%04.4lf, %04.4lf, %04.4lf)\n",
+		//	v1->x, v1->y, v1->z, v2->x, v2->y, v2->z, v3->x, v3->y, v3->z);
+		//printf("min: %lf\t %lf\n", z_min, z_tmp);
+		z_tmp = z_min;
+	}
+	return z_tmp;
 }
 
 pair<int, int> Triangle::get_x_range(int y)

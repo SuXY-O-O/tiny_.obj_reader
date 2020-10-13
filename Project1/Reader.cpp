@@ -39,10 +39,11 @@ void Reader::read_in_vertex()
 		}
 		x[i] = stod(tmp);//read a double
 	}
-	//x[0] = x[0] * zoom_rate + screen_width / 2;
-	x[0] = x[0] * zoom_rate;
-	//x[1] = x[1] * zoom_rate + screen_height / 2;
-	x[1] = x[1] * zoom_rate;
+	// To fit for most of the file
+	x[0] = x[0] * zoom_rate + screen_width / 2;
+	//x[0] = x[0] * zoom_rate;
+	x[1] = x[1] * zoom_rate + screen_height / 2;
+	//x[1] = x[1] * zoom_rate;
 	x[2] = x[2] * zoom_rate;
 	Vertex* new_one = new Vertex(x[0], x[1], x[2]);
 	//update y_all min and max
@@ -58,7 +59,7 @@ void Reader::read_in_vertex()
 			y_all_max = x[1];
 	}
 	total_vertex++;
-	printf("%d:\t %lf %lf %lf\n", total_vertex, x[0], x[1], x[2]);
+	//printf("%d:\t %lf %lf %lf\n", total_vertex, x[0], x[1], x[2]);
 	vertexs.push_back(new_one);
 }
 
@@ -84,9 +85,9 @@ void Reader::read_in_triangle()
 		}
 	}
 	unsigned int i;
-	for (i = 0; i < contains.size(); i++)
+	/*for (i = 0; i < contains.size(); i++)
 		printf("%d ", contains[i]);
-	printf("\n");
+	printf("\n");*/
 	for (i = 1; i < contains.size() - 1; i++)//seperate polygon and save by triangle
 	{
 		Triangle* t = new Triangle
@@ -126,7 +127,7 @@ bool Reader::begin_read_file()
 			if (now == ' ')					//is a vertex
 			{
 				debug++;
-				printf("v count:%d\n", debug);
+				//printf("v count:%d\n", debug);
 				read_in_vertex();
 			}
 		}
@@ -135,6 +136,7 @@ bool Reader::begin_read_file()
 			read_in_triangle();
 		}
 	}
+	printf("Read in successfully\n");
 	return true;
 }
 

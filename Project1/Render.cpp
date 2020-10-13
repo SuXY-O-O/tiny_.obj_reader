@@ -34,7 +34,6 @@ void Render::compute_render()
 		max_y = reader->get_height();
 	int min_x = 0;
 	int max_x = reader->get_width();
-	bool flag = true;
 	for (iy = min_y; iy < max_y; iy++)
 	{
 		active_triangle_table->remove_if_y(iy);
@@ -54,17 +53,10 @@ void Render::compute_render()
 			{
 				double z_value = (*ite)->compute_z_value(ix, iy);
 				//printf("%lf\t", z_value);
-				if (flag)
-				{
-					flag = false;
-					z_all_min = z_all_max = (int)z_value;
-				}
-				if (z_value > z_all_max)
-					z_all_max = (int)z_value;
-				if (z_value < z_all_min)
-					z_all_min = (int)z_value;
 				if (z_value > (*(*z_buffer)[iy])[ix])
+				{
 					(*(*z_buffer)[iy])[ix] = z_value;
+				}	
 			}
 		}
 	}
@@ -73,9 +65,35 @@ void Render::compute_render()
 
 void Render::depth_to_color()
 {
+	int ix, iy;
+	bool flag = true;
+	for (iy = 0; iy < reader->get_height(); iy++)
+	{
+		for (ix = 0; ix < reader->get_width(); ix++)
+		{
+			if ((*(*z_buffer)[iy])[ix] != Z_MIN_DOUBLE)
+			{
+				if (flag)
+				{
+					flag = false;
+					z_all_max = z_all_min = (*(*z_buffer)[iy])[ix];
+					continue;
+				}
+				if ((*(*z_buffer)[iy])[ix] > z_all_max)
+				{
+					z_all_max = (int)(*(*z_buffer)[iy])[ix];
+					//printf("max update: %lf\n", (*(*z_buffer)[iy])[ix]);
+				}
+				if ((*(*z_buffer)[iy])[ix] < z_all_min)
+				{
+					z_all_min = (int)(*(*z_buffer)[iy])[ix];
+					//printf("min update: %lf\n", (*(*z_buffer)[iy])[ix]);
+				}
+			}
+		}
+	}
 	int z_range = z_all_max - z_all_min;
 	int color_range = 255 - COLOR_MIN;
-	int ix, iy;
 	for (iy = 0; iy < reader->get_height(); iy++)
 	{
 		for (ix = 0; ix < reader->get_width(); ix++)
@@ -93,7 +111,7 @@ void Render::depth_to_color()
 			}
 		}
 	}
-	//printf("z_min: %lf, z_range: %lf\n", z_all_min, z_range);
+	//printf("z_min: %d, z_range: %d\n", z_all_min, z_range);
 }
 
 vector<vector<double>*>* Render::get_z_picture()

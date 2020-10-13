@@ -14,9 +14,14 @@ private:
 	Vertex* v1;
 	Vertex* v2;
 	Vertex* v3;
+	// The normal vector
+	Vertex* n;
 	// Max and Min of vertex.y
 	double y_max;
 	double y_min;
+	// Max and Min of vertex.z
+	double z_max;
+	double z_min;
 	// The x and z of the vertex containing the y_min
 	double x_y_min;
 	double z_y_min;
