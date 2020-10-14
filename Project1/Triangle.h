@@ -5,7 +5,7 @@
 
 using namespace std;
 
-const double EXP = 0.000001;
+const double EXP = 1;
 
 class Triangle
 {
@@ -16,6 +16,9 @@ private:
 	Vertex* v3;
 	// The normal vector
 	Vertex* n;
+	// Max and Min of vertex.x
+	double x_max;
+	double x_min;
 	// Max and Min of vertex.y
 	double y_max;
 	double y_min;
@@ -27,8 +30,8 @@ private:
 	double z_y_min;
 	// The range of x inside the triangle when y = index
 	int begin_y;
-	vector<int> x_min;
-	vector<int> x_max;
+	vector<int> x_min_list;
+	vector<int> x_max_list;
 	// Parameters for computing delta z
 	bool is_static_z;
 	double k_delta_x;

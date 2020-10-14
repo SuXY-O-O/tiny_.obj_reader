@@ -1,5 +1,5 @@
 #include "Triangle.h"
-#include "Reader.h"
+#include "Render.h"
 #include <cmath>
 
 void Triangle::compute_normal()
@@ -14,10 +14,10 @@ void Triangle::compute_normal()
 	// (a1, a2, a3) = v2 - v1
 	double a1 = v2->x - v1->x;
 	double a2 = v2->y - v1->y;
-	double a3 = v2->z - v2->z;
+	double a3 = v2->z - v1->z;
 	// (b1, b2, b3) = v3 - v1
 	double b1 = v3->x - v1->x;
-	double b2 = v3->y - v3->y;
+	double b2 = v3->y - v1->y;
 	double b3 = v3->z - v1->z;
 	// Compute normal vector (n1, n2, n3)
 	double n1 = a2 * b3 - a3 * b2;
@@ -86,13 +86,13 @@ void Triangle::compute_x_list()
 		// Save
 		if (tmp[0] > tmp[1])
 		{
-			x_min.push_back(tmp[1]);
-			x_max.push_back(tmp[0]);
+			x_min_list.push_back(tmp[1]);
+			x_max_list.push_back(tmp[0]);
 		}
 		else
 		{
-			x_min.push_back(tmp[0]);
-			x_max.push_back(tmp[1]);
+			x_min_list.push_back(tmp[0]);
+			x_max_list.push_back(tmp[1]);
 		}
 	}
 }
@@ -100,6 +100,13 @@ void Triangle::compute_x_list()
 Triangle::Triangle(Vertex* a1, Vertex* a2, Vertex* a3)
 	: v1(a1), v2(a2), v3(a3)
 {
+	// Get x_max and x_min
+	x_max = a1->x > a2->x ? a1->x : a2->x;
+	if (x_max < a3->x)
+		x_max = a3->x;
+	x_min = a1->x < a2->x ? a1->x : a2->x;
+	if (x_min > a3->x)
+		x_min = a3->x;
 	// Get y_max and y_min
 	y_max = a1->y > a2->y ? a1->y : a2->y;
 	if (y_max < a3->y)
@@ -140,6 +147,12 @@ Triangle::Triangle(Vertex* a1, Vertex* a2, Vertex* a3)
 
 double Triangle::compute_z_value(double x, double y)
 {
+	if (y > y_max + 1 || y < y_min - 1 
+		|| x < x_min - 1 || x > x_max + 1)
+	{
+		//printf("Out Of Range!!!\n");
+		return Z_MIN_DOUBLE;
+	}
 	if (is_static_z)
 		return v1->z;
 	double z_tmp = -(n->x * (x - v1->x) + n->y * (y - v1->y)) / n->z + v1->z;
@@ -149,10 +162,16 @@ double Triangle::compute_z_value(double x, double y)
 	}
 	else if (z_tmp > z_max)
 	{
-		//printf("(%04.4lf, %04.4lf, %04.4lf)\t(%04.4lf, %04.4lf, %04.4lf)\t(%04.4lf, %04.4lf, %04.4lf)\n",
-		//	v1->x, v1->y, v1->z, v2->x, v2->y, v2->z, v3->x, v3->y, v3->z);
-		//printf("max: %lf\t %lf\n", z_max, z_tmp);
+		printf("(%04.4lf, %04.4lf, %04.4lf)\t(%04.4lf, %04.4lf, %04.4lf)\t(%04.4lf, %04.4lf, %04.4lf)\n",
+			v1->x, v1->y, v1->z, v2->x, v2->y, v2->z, v3->x, v3->y, v3->z);
+		//printf("(%04.4lf, %04.4lf, %04.4lf)\t(%04.4lf, %04.4lf, %04.4lf)\n",
+		//	v1->x - v2->x, v1->y - v2->y, v1->z - v2->z, 
+		//	v1->x - v3->x, v1->y - v3->y, v1->z - v3->z);
+		printf("max: %lf\t tmp: %lf\n", z_max, z_tmp);
+		printf("x: %lf\t y: %lf\n", x, y);
+		//printf("n: %lf %lf %lf\n", n->x, n->y, n->z);
 		z_tmp = z_max;
+		//z_tmp = Z_MIN_DOUBLE;
 	}
 	else if (z_tmp < z_min)
 	{
@@ -160,13 +179,15 @@ double Triangle::compute_z_value(double x, double y)
 		//	v1->x, v1->y, v1->z, v2->x, v2->y, v2->z, v3->x, v3->y, v3->z);
 		//printf("min: %lf\t %lf\n", z_min, z_tmp);
 		z_tmp = z_min;
+		//z_tmp = Z_MIN_DOUBLE;
 	}
 	return z_tmp;
+	//return z_min;
 }
 
 pair<int, int> Triangle::get_x_range(int y)
 {
 	if (y >= y_max || y <= y_min)
 		return pair<int, int>(0, 0);
-	return pair<int, int>(x_min[y - begin_y], x_max[y - begin_y]);
+	return pair<int, int>(x_min_list[y - begin_y], x_max_list[y - begin_y]);
 }
